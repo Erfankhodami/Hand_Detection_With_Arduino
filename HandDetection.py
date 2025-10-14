@@ -1,13 +1,33 @@
 import cv2
 import numpy as np
 import time
-
+import serial
+import time
 #Open Camera object
 cap = cv2.VideoCapture(0)
 
 #Decrease frame size
-cap.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, 1000)
-cap.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, 600)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1000)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
+
+
+
+
+try:
+    arduino = serial.Serial('COM3', 9600, timeout=1)
+    time.sleep(2)  # wait for Arduino to reset
+    connected = True
+    print("Arduino connected!")
+except serial.SerialException:
+    arduino = None
+    connected = False
+    print("Arduino not connected.")
+
+
+
+
+
+
 
 def nothing(x):
     pass
@@ -36,6 +56,10 @@ h,s,v = 100,100,100
 cv2.createTrackbar('h', 'HSV_TrackBar',0,179,nothing)
 cv2.createTrackbar('s', 'HSV_TrackBar',0,255,nothing)
 cv2.createTrackbar('v', 'HSV_TrackBar',0,255,nothing)
+
+
+
+
 
 while(1):
 
@@ -89,8 +113,16 @@ while(1):
             max_area=area
             ci=i  
             
-	#Largest area contour 			  
+	
+    if(len(contours)==0):
+        print("no cams")
+        continue
+    
+
+    #Largest area contour 			  
     cnts = contours[ci]
+    
+    
 
     #Find convex hull
     hull = cv2.convexHull(cnts)
@@ -117,7 +149,12 @@ while(1):
     if moments['m00']!=0:
         cx = int(moments['m10']/moments['m00']) # cx = M10/M00
         cy = int(moments['m01']/moments['m00']) # cy = M01/M00
-    centerMass=(cx,cy)    
+    centerMass=(cx,cy) 
+
+
+    
+
+
     
     #Draw center mass
     cv2.circle(frame,centerMass,7,[100,0,255],2)
@@ -177,9 +214,46 @@ while(1):
     #Print bounding rectangle
     x,y,w,h = cv2.boundingRect(cnts)
     img = cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)
-    
+ 
     cv2.drawContours(frame,[hull],-1,(255,255,255),2)
+    text = f"X: {centerMass[0]}, Y: {centerMass[1]}, W: {w}, H: {h}"
+    cv2.putText(
+    img,                  # Image
+    text,                 # Text to display
+    (50, 50),             # Position (top-left corner)
+    cv2.FONT_HERSHEY_SIMPLEX,  # Font
+    1,                    # Font scale
+    (255, 255, 255),      # Color (white)
+    2                     # Thickness
+    )
+
+
+
     
+    
+    
+    
+    
+    if connected and arduino is not None:
+        try:
+            arduino.write(f"{cx},{cy}\n".encode())
+        except serial.SerialException:
+            print("Lost connection to Arduino!")
+            connected = False
+    else:
+        print(f"Arduino not connected. cx={cx}, cy={cy}")
+
+    
+    
+
+
+
+
+
+
+
+
+
     ##### Show final image ########
     cv2.imshow('Dilation',frame)
     ###############################
@@ -192,6 +266,20 @@ while(1):
     if k == 27:
         break
 
-
+arduino.close()
 cap.release()
 cv2.destroyAllWindows()
+
+
+
+def is_arduino_connected(ser):
+    if ser is None:
+        return False
+    if not ser.is_open:
+        return False
+    # Try to write and see if it raises an exception
+    try:
+        ser.write(b'\n')  # send a dummy newline
+        return True
+    except:
+        return False
