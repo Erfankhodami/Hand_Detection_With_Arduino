@@ -10,20 +10,7 @@ cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1000)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
 
-
-
-
-try:
-    arduino = serial.Serial('COM3', 9600, timeout=1)
-    time.sleep(2)  # wait for Arduino to reset
-    connected = True
-    print("Arduino connected!")
-except serial.SerialException:
-    arduino = None
-    connected = False
-    print("Arduino not connected.")
-
-
+#arduino = serial.Serial('COM3', 9600, timeout=1)
 
 
 
@@ -232,16 +219,9 @@ while(1):
     
     
     
-    
-    
-    if connected and arduino is not None:
-        try:
-            arduino.write(f"{cx},{cy}\n".encode())
-        except serial.SerialException:
-            print("Lost connection to Arduino!")
-            connected = False
-    else:
-        print(f"Arduino not connected. cx={cx}, cy={cy}")
+    #arduino.write(f"{cx},{cy}\n".encode())
+
+
 
     
     
@@ -266,20 +246,8 @@ while(1):
     if k == 27:
         break
 
-arduino.close()
+#arduino.close()
 cap.release()
 cv2.destroyAllWindows()
 
 
-
-def is_arduino_connected(ser):
-    if ser is None:
-        return False
-    if not ser.is_open:
-        return False
-    # Try to write and see if it raises an exception
-    try:
-        ser.write(b'\n')  # send a dummy newline
-        return True
-    except:
-        return False
