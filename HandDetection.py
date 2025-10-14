@@ -218,6 +218,8 @@ while(1):
 
     
     
+
+    
     
     #arduino.write(f"{cx},{cy}\n".encode())
 
