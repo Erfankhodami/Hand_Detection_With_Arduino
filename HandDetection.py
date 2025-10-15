@@ -10,7 +10,7 @@ cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1000)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
 
-arduino = serial.Serial('COM17', 9600, timeout=1)
+arduino = serial.Serial('COM14', 9600, timeout=1)
 
 
 
@@ -120,6 +120,9 @@ while(1):
     
     #Get defect points and draw them in the original image
     FarDefect = []
+    if(len(defects.shape)==0):
+        continue
+    
     for i in range(defects.shape[0]):
         s,e,f,d = defects[i,0]
         start = tuple(cnts[s][0])
