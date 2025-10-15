@@ -10,7 +10,7 @@ cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1000)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
 
-#arduino = serial.Serial('COM3', 9600, timeout=1)
+arduino = serial.Serial('COM17', 9600, timeout=1)
 
 
 
@@ -221,8 +221,8 @@ while(1):
 
     
     
-    #arduino.write(f"{cx},{cy}\n".encode())
-
+    arduino.write(f"{cx},{cy}\n".encode())
+    time.sleep(0.03)
 
 
     
@@ -248,7 +248,7 @@ while(1):
     if k == 27:
         break
 
-#arduino.close()
+arduino.close()
 cap.release()
 cv2.destroyAllWindows()
 
